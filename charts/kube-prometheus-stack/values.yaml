@@ -112,7 +112,7 @@ alertmanager:
 
   ## Deploy alertmanager
   ##
-  enabled: true
+  enabled: false
 
   ## Api that prometheus will use to communicate with alertmanager. Possible values are v1, v2
   ##
@@ -192,6 +192,9 @@ alertmanager:
 
   ingress:
     enabled: false
+    annotations:
+        kubernetes.io/ingress.class: "traefik"
+        traefik.frontend.rule.type: PathPrefixStrip
 
     annotations: {}
 
@@ -199,13 +202,15 @@ alertmanager:
 
     ## Hosts must be provided if Ingress is enabled.
     ##
-    hosts: []
+    #hosts: []
       # - alertmanager.domain.com
+    hosts:
+        - k3s
 
     ## Paths to use for ingress rules - one path should match the alertmanagerSpec.routePrefix
     ##
-    paths: []
-    # - /
+    paths:
+        - /alertmanager
 
     ## TLS configuration for Alertmanager Ingress
     ## Secret must be manually created in the namespace
@@ -410,7 +415,7 @@ alertmanager:
 
     ## 	The external URL the Alertmanager instances will be available under. This is necessary to generate correct URLs. This is necessary if Alertmanager is not served from root of a DNS name.	string	false
     ##
-    externalUrl:
+    externalUrl: "http://k3s/alertmanager"
 
     ## 	The route prefix Alertmanager registers HTTP handlers for. This is useful, if using ExternalURL and a proxy is rewriting HTTP routes of a request, and the actual ExternalURL is still true,
     ## but the server serves requests under a different route prefix. For example for use with kubectl proxy.
@@ -514,16 +519,22 @@ grafana:
   ##
   defaultDashboardsEnabled: true
 
-  adminPassword: prom-operator
+  adminPassword: admin
+
+  grafana.ini:
+    server:
+      root_url: http://k3s/grafana
 
   ingress:
     ## If true, Grafana Ingress will be created
     ##
-    enabled: false
+    enabled: true
 
     ## Annotations for Grafana Ingress
     ##
-    annotations: {}
+    annotations:
+      kubernetes.io/ingress.class: "traefik"
+      traefik.frontend.rule.type: PathPrefixStrip
       # kubernetes.io/ingress.class: nginx
       # kubernetes.io/tls-acme: "true"
 
@@ -536,10 +547,11 @@ grafana:
     ##
     # hosts:
     #   - grafana.domain.com
-    hosts: []
+    hosts:
+        - k3s
 
     ## Path for grafana ingress
-    path: /
+    path: /grafana
 
     ## TLS configuration for grafana Ingress
     ## Secret must be manually created in the namespace
@@ -1103,7 +1115,7 @@ kube-state-metrics:
 ## Deploy node exporter as a daemonset to all nodes
 ##
 nodeExporter:
-  enabled: true
+  enabled: false
 
   ## Use the value configured in prometheus-node-exporter.podLabels
   ##
@@ -1514,8 +1526,11 @@ prometheus:
     #   - thanos-gateway.domain.com
 
   ingress:
-    enabled: false
-    annotations: {}
+    enabled: true
+    annotations:
+        kubernetes.io/ingress.class: "traefik"
+        traefik.frontend.rule.type: PathPrefixStrip
+
     labels: {}
 
     ## Hostnames.
@@ -1523,12 +1538,13 @@ prometheus:
     ##
     # hosts:
     #   - prometheus.domain.com
-    hosts: []
+    hosts:
+        - k3s
 
     ## Paths to use for ingress rules - one path should match the prometheusSpec.routePrefix
     ##
-    paths: []
-    # - /
+    paths:
+        - /prometheus
 
     ## TLS configuration for Prometheus Ingress
     ## Secret must be manually created in the namespace
@@ -1693,7 +1709,7 @@ prometheus:
 
     ## External URL at which Prometheus will be reachable.
     ##
-    externalUrl: ""
+    externalUrl: "http://k3s/prometheus"
 
     ## Define which Nodes the Pods are scheduled on.
     ## ref: https://kubernetes.io/docs/user-guide/node-selection/
